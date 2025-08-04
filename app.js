@@ -11,6 +11,9 @@ const categoriesRoutes = require("./routes/categories");
 const noticesRoutes = require("./routes/notices");
 const tutorsRoutes = require("./routes/tutors");
 const jobsRoutes = require("./routes/jobs");
+const appliesRoutes = require("./routes/applies");
+const feedbacksRoutes = require("./routes/feedbacks");
+const interfacesRoutes = require("./routes/interfaces");
 
 const port = process.env.PORT || 3001;
 
