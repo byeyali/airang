@@ -1,10 +1,12 @@
 const fs = require("fs");
+const { error } = require("console");
 const { Tutor, TutorCategory, TutorRegion, TutorFile } = require("../models");
 
 const createTutor = async (req, res) => {
+  const memberId = req.member.id;
+
   try {
     const {
-      member_id,
       school,
       major,
       is_graduate,
@@ -17,7 +19,7 @@ const createTutor = async (req, res) => {
     const photo_path = req.file ? req.file.path : null;
 
     const newTutor = await Tutor.create({
-      member_id: member_id,
+      member_id: memberId,
       school: school,
       major: major,
       is_graduate: is_graduate,
@@ -29,16 +31,16 @@ const createTutor = async (req, res) => {
 
     res.status(201).json(newTutor);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const updateTutor = async (req, res) => {
   try {
     // 파라미터값 세팅
-    const tutorId = req.params.id;
+    const id = req.params.id;
 
-    const tutor = await Tutor.findByPk(tutorId);
+    const tutor = await Tutor.findByPk(id);
     if (!tutor) {
       return res.status(404).json({ message: "튜터를 찾을 수 없습니다." });
     }
@@ -77,41 +79,76 @@ const updateTutor = async (req, res) => {
 
     updateData.photo_path = photo_path;
 
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "변경할 항목이 없습니다." });
+    }
+    
     // TABLE UPDATE
     await Tutor.update(updateData, {
-      where: { id: tutorId },
+      where: { id: id },
     });
 
     // UPDATE 후 재조회
-    const updatedTutor = await Tutor.findByPk(tutorId);
+    const updatedTutor = await Tutor.findByPk(id);
     res.json(updatedTutor);
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
+const deleteTutor = async(req, res) => {
+  try {
+    // 튜터 카테고리, 지역, 파일 우선 삭제
+    const id = req.params.id;
+
+    const deletedCategoryCount = await TutorCategory.destroy({
+      where: { tutor_id: id },
+    });
+
+    const deletedRegionCount = await TutorRegion.destroy({
+      where: { tutor_id: id },
+    });
+
+    const deletedFileCount = await TutorFile.destroy({
+      where: { tutor_id: id },
+    });
+
+    const deletedTutor = await Tutor.destroy({
+      where: { id: id },
+    });
+
+    if (!deletedTutor) {
+      return res.status(404).json({ message: "정보가 없습니다." });
+    } else {
+      res.json({ message: "삭제완료" });
+    }
+
+  } catch (err) {
+    res.status(500).json({ error: err.message});
+  }
+}
+
 const addTutorCategory = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
     const categories = req.body.categories;
 
     if (!Array.isArray(categories)) {
-      return res.status(400).json({ message: "카테고리 배열이 필요합니다." });
+      return res.status(400).json({ message: "카테고리를 선택하세요" });
     }
 
     const result = [];
     for (const categoryId of categories) {
       const category = await TutorCategory.findOne({
         where: {
-          tutor_id: tutorId,
+          tutor_id: id,
           category_id: categoryId,
         },
       });
 
       if (!category) {
         const newCategory = await TutorCategory.create({
-          tutor_id: tutorId,
+          tutor_id: id,
           category_id: categoryId,
         });
         result.push(newCategory);
@@ -120,18 +157,18 @@ const addTutorCategory = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "튜터에 대한 카테고리 추가 완료", added: result });
+      .json({ message: "튜터 카테고리 정보 등록완료", added: result });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const deleteTutorCategory = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
 
     const deletedCount = await TutorCategory.destroy({
-      where: { tutor_id: tutorId },
+      where: { tutor_id: id },
     });
 
     if (deletedCount === 0) {
@@ -143,17 +180,17 @@ const deleteTutorCategory = async (req, res) => {
       count: deletedCount,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const addTutorRegion = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
     const regions = req.body.regions;
 
     if (!Array.isArray(regions)) {
-      return res.status(400).json({ message: "지역 배열이 필요합니다." });
+      return res.status(400).json({ message: "선택한 지역이 없습니다." });
     }
 
     const result = [];
@@ -161,7 +198,7 @@ const addTutorRegion = async (req, res) => {
       const { city_name, district_name } = regionItem;
       const exists = await TutorRegion.findOne({
         where: {
-          tutor_id: tutorId,
+          tutor_id: id,
           city_name,
           district_name,
         },
@@ -169,7 +206,7 @@ const addTutorRegion = async (req, res) => {
 
       if (!exists) {
         const newRegion = await TutorRegion.create({
-          tutor_id: tutorId,
+          tutor_id: id,
           city_name,
           district_name,
         });
@@ -179,18 +216,18 @@ const addTutorRegion = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "튜터에 대한 지역 추가 완료", added: result });
+      .json({ message: "튜터 지역 등록 완료", added: result });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const deleteTutorRegion = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
 
     const deletedCount = await TutorRegion.destroy({
-      where: { tutor_id: tutorId },
+      where: { tutor_id: id },
     });
 
     if (deletedCount === 0) {
@@ -202,13 +239,13 @@ const deleteTutorRegion = async (req, res) => {
       count: deletedCount,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const addTutorFile = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: "파일이 첨부되지 않았습니다." });
     }
@@ -216,7 +253,7 @@ const addTutorFile = async (req, res) => {
     const addFiles = await Promise.all(
       req.files.map((file, index) => {
         return TutorFile.create({
-          tutor_id: tutorId,
+          tutor_id: id,
           file_doc_type: Array.isArray(req.body.file_doc_type)
             ? req.body.file_doc_type[index]
             : req.body.file_doc_type || "portfolio", // 1. idcard, 2. health, 3. license, 4. portfolio, 5. account
@@ -230,16 +267,16 @@ const addTutorFile = async (req, res) => {
 
     res.status(201).json({ message: "파일 첨부 완료", added: addFiles });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 const deleteTutorFile = async (req, res) => {
   try {
-    const tutorId = req.params.tutorId;
+    const id = req.params.id;
 
     const deletedCount = await TutorFile.destroy({
-      where: { tutor_id: tutorId },
+      where: { tutor_id: id },
     });
 
     if (deletedCount === 0) {
@@ -251,13 +288,14 @@ const deleteTutorFile = async (req, res) => {
       count: deletedCount,
     });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
 module.exports = {
   createTutor,
   updateTutor,
+  deleteTutor,
   addTutorCategory,
   deleteTutorCategory,
   addTutorRegion,

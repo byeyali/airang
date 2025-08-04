@@ -1,3 +1,5 @@
+const { Sequelize } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   const TutorJob = sequelize.define(
     "TutorJob",
@@ -18,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       work_day: { type: DataTypes.STRING(20), allowNull: true }, // 서비스 요일
       work_place: { type: DataTypes.STRING(255), allowNull: true }, // 시/도 구/군 지역
 
-      payment: { type: DataTypes.INTEGER, allowNull: true }, // 시급
+      payment: { type: DataTypes.DECIMAL(10,2), allowNull: true }, // 시급
       payment_cycle: { type: DataTypes.STRING(50), allowNull: true }, // 입금주기
 
       preferred_tutor_id: { type: DataTypes.INTEGER, allowNull: true }, // 희망 튜터 ID (optional)

@@ -1,3 +1,4 @@
+const { error } = require("console");
 const { Category } = require("../models");
 
 const createCategory = async (req, res) => {
@@ -39,6 +40,10 @@ const updateCategory = async (req, res) => {
       updateData.category_nm = category_nm;
     }
 
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "변경할 항목이 없습니다." });
+    }
+
     // update 실행
     const [updated] = await Category.update(updateData, {
       where: { id: categoryId },
@@ -54,9 +59,8 @@ const updateCategory = async (req, res) => {
     });
 
     res.json(updatedCategory);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "서버 에러" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 

@@ -1,8 +1,9 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { error } = require("console");
+require("dotenv").config();
 
 const { Member } = require("../models");
-require("dotenv").config();
 
 // 로그인
 const login = async (req, res) => {
@@ -34,8 +35,7 @@ const login = async (req, res) => {
 
     res.json({ token });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "서버 오류" });
+    res.status(500).json({ error : err.message });
   }
 };
 

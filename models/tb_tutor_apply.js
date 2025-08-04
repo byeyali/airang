@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     apply_status: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      defaultValue: '대기', // 대기, 수락, 거절 등
+      defaultValue: 'ready', // ready, accept, reject, confirm, contract
     },
     message: {
       type: DataTypes.TEXT,

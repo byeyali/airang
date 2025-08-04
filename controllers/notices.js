@@ -1,14 +1,16 @@
+const { error } = require("console");
 const { Notice } = require("../models");
 
 const createNotice = async (req, res) => {
   try {
-    const { title, content, writer, is_notice } = req.body;
+    const { title, content, is_notice } = req.body;
+    const writer = req.member.id;  // 로그인한 사용자 ID
 
     const newNotice = await Notice.create({
-      title: title,
-      content: content,
-      writer: writer,
-      is_notice: is_notice,
+      title,
+      content,
+      writer,
+      is_notice,
     });
 
     res.status(201).json(newNotice);
@@ -19,55 +21,40 @@ const createNotice = async (req, res) => {
 
 const updateNotice = async (req, res) => {
   try {
-    const noticeId = req.params.id;
+    const id = req.params.id;
     const { title, content } = req.body;
 
-    // 공지 조회
-    const notice = await Notice.findOne({
-      where: { id: noticeId },
-    });
+    const notice = await Notice.findOne({ where: { id: id } });
     if (!notice) {
-      return res.status(404).json({
-        message: "공지사항을 찾을 수 없습니다.",
-      });
+      return res.status(404).json({ message: "공지를 찾을 수 없습니다." });
     }
 
-    // view count 증가
-    const newViewCount = notice.view_count + 1;
-    const updateData = { view_count: newViewCount };
+    const updateData = {};
+    if (title && title !== notice.title) updateData.title = title;
+    if (content && content !== notice.content) updateData.content = content;
 
-    // title, content 값 비교
-    if (title !== notice.title) {
-      updateData.title = title;
-    }
-    if (content !== notice.content) {
-      updateData.content = content;
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "변경할 항목이 없습니다." });
     }
 
-    // update 실행
-    const [updated] = await Notice.update(updateData, {
-      where: { id: noticeId },
-    });
-
+    const [updated] = await Notice.update(updateData, { where: { id: id } });
     if (updated === 0) {
       return res.status(400).json({ message: "업데이트 실패" });
     }
 
-    // 업데이트 후 새 데이터 조회
-    const updatedNotice = await Notice.findOne({
-      where: { id: noticeId },
-    });
-
+    const updatedNotice = await Notice.findOne({ where: { id: id } });
     res.json(updatedNotice);
+
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "서버 에러" });
+    res.status(500).json({ error: error.message });
   }
 };
 
 const getNoticeList = async (req, res) => {
   try {
-    const notices = await Notice.findAll();
+    const notices = await Notice.findAll({
+      order: [['created_at', 'DESC']]
+    });
     res.json(notices);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -78,7 +65,7 @@ const getNoticeById = async (req, res) => {
   try {
     const notice = await Notice.findByPk(req.params.id);
     if (!notice) {
-      return res.status(404).json({ message: "Notice not found" });
+      return res.status(404).json({ message: "공지를 찾을수 없습니다." });
     } else {
       return res.json(notice);
     }
@@ -93,9 +80,9 @@ const deleteNotice = async (req, res) => {
       where: { id: req.params.id },
     });
     if (!deletedNotice) {
-      return res.status(404).json({ message: "Notice not found" });
+      return res.status(404).json({ message: "공지를 찾을수 없습니다." });
     } else {
-      res.json({ message: "Notice deleted" });
+      res.json({ message: "삭제 성공" });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });

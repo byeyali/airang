@@ -1,12 +1,14 @@
-const { Member } = require("../models");
 const bcrypt = require("bcrypt");
+const { error } = require("console");
+
+const { Member } = require("../models");
 
 const createMember = async (req, res) => {
   try {
     const { password, ...rest } = req.body;
 
     if (!password) {
-      return res.json(400).json({ message: "Password is required" });
+      return res.json(400).json({ message: "패스워드를 입력해야 합니다." });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,7 +31,7 @@ const updateMember = async (req, res) => {
     });
 
     if (!updated)
-      return res.status(404).json({ message: "Member not found or no change" });
+      return res.status(404).json({ message: "회원을 찾을수 없거나 변경된 정보가 없습니다." });
     const updatedMember = await Member.findByPk(req.params.id);
     res.json(updatedMember);
   } catch (err) {
@@ -50,7 +52,7 @@ const getMemberById = async (req, res) => {
   try {
     const member = await Member.findByPk(req.params.id);
     if (!member) {
-      return res.status(404).json({ message: "Member not found" });
+      return res.status(404).json({ message: "회원을 찾을수 없습니다." });
     } else {
       return res.json(member);
     }
@@ -65,9 +67,9 @@ const deleteMember = async (req, res) => {
       where: { id: req.params.id },
     });
     if (!deletedMember) {
-      return res.status(404).json({ message: "Member not found" });
+      return res.status(404).json({ message: "회원을 찾을수 없습니다." });
     } else {
-      res.json({ message: "Member deleted" });
+      res.json({ message: "회원이 삭제되었습니다." });
     }
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authorization = require("../middlewares/auth");
 const { uploadSingle, uploadMultiple } = require("../middlewares/upload"); // 구조분해 할당
 const {
   createTutor,
@@ -10,15 +11,17 @@ const {
   deleteTutorRegion,
   addTutorFile,
   deleteTutorFile,
+  deleteTutor,
 } = require("../controllers/tutors");
 
-router.post("/", uploadSingle, createTutor);
-router.put("/:id", uploadSingle, updateTutor);
-router.post("/:tutorId/category", addTutorCategory);
-router.delete("/:tutorId/category", deleteTutorCategory);
-router.post("/:tutorId/region", addTutorRegion);
-router.delete("/:tutorId/region", deleteTutorRegion);
-router.post("/:tutorId/files", uploadMultiple, addTutorFile);
-router.delete("/:tutorId/files", deleteTutorFile);
+router.post("/", authorization, uploadSingle, createTutor);
+router.put("/:id", authorization, uploadSingle, updateTutor);
+router.delete("/:id", authorization, deleteTutor);
+router.post("/:id/category", authorization, addTutorCategory);
+router.delete("/:id/category", authorization, deleteTutorCategory);
+router.post("/:id/region", authorization, addTutorRegion);
+router.delete("/:id/region", authorization, deleteTutorRegion);
+router.post("/:id/files", authorization, uploadMultiple, addTutorFile);
+router.delete("/:id/files", authorization, deleteTutorFile);
 
 module.exports = router;

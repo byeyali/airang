@@ -1,14 +1,27 @@
 const fs = require("fs");
-const { TutorJob } = require("../models");
+const { error } = require("console");
+const { TutorJob, Member, TutorJobCategory } = require("../models");
 
 const createTutorJob = async (req, res) => {
   try {
+    const requesterId = req.member.id;
     const { title, ...etc } = req.body;
     const tutorJob = { title, ...etc };
 
+    // 요청자가 부모 회원이 아닐 경우 에러 RETURN
+    const member = await Member.findOne({
+      where: { id: requesterId, member_type: 'mommy' },
+    });
+
+    if (!member) {
+      return res.status(404).json({
+         message: "요청자가 부모 회원이 아닙니다."
+      });
+    }
+
     const newTutorJob = await TutorJob.create({
       title: tutorJob.title,
-      requester_id: tutorJob.requester_id, // 보호자
+      requester_id: requesterId, // 보호자
       target: tutorJob.target,
       objective: tutorJob.objective,
       work_type: tutorJob.work_type,
@@ -26,10 +39,10 @@ const createTutorJob = async (req, res) => {
       description: tutorJob.description,
       etc: tutorJob.etc,
     });
-
+    
     res.status(201).json(newTutorJob);
   } catch (err) {
-    console.log(res.status(500).json({ message: err.message }));
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -108,11 +121,113 @@ const updateTutorJob = async (req, res) => {
 
     res.json(updatedJob);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
+
+const getTutorJobById = async(req, res) => {
+   try {
+    const job = await TutorJob.findByPk(req.params.id);
+    if (!job)  {
+      return res.status(404).json({ message: "도와줘요 쌤 공고가 없습니다." });
+    } else {
+      return res.json(job);
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+const deleteTutorJob = async(req, res) => {
+  try {
+    // 공고상태 확인
+    const jobId = req.params.id;
+
+    const job = await TutorJob.findByPk(jobId);
+
+    if (job.status !== "registered") {
+      return res.status(403).json({
+        message: "도와줘요~쌤 공고를 삭제할 수 없는 상태입니다."
+      });
+    }
+
+    const deletedJob = await TutorJob.destroy({
+      where: { id: req.params.id },
+    });
+    if (!deletedJob) {
+      return res.status(404).json({ message: "삭제할 공고가 없습니다." });
+    } else {
+      res.json({ message: "공고가 삭제되었습니다." });
+    }
+
+  } catch (err) {
+    res.status(500).json({ error: err.message});
+  }
+}
+
+const addTutorJobCategory = async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+    const categories = req.body.categories;
+
+    if (!Array.isArray(categories)) {
+      return res.status(400).json({ message: "카테고리를 선택하세요" });
+    }
+
+    const result = [];
+    for (const categoryId of categories) {
+      const category = await TutorJobCategory.findOne({
+        where: {
+          tutor_job_id: jobId,
+          category_id: categoryId,
+        },
+      });
+
+      if (!category) {
+        const newCategory = await TutorJobCategory.create({
+          tutor_job_id: jobId,
+          category_id: categoryId,
+        });
+        result.push(newCategory);
+      }
+    }
+
+    res
+      .status(200)
+      .json({ message: "튜터 공지 카테고리 정보 등록완료", added: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteTutorJobCategory = async (req, res) => {
+  try {
+    const jobId = req.params.jobId;
+
+    const deletedCount = await TutorJobCategory.destroy({
+      where: { tutor_job_id: jobId },
+    });
+
+    if (deletedCount === 0) {
+      return res.status(404).json({ message: "삭제할 카테고리가 없습니다." });
+    }
+
+    return res.status(200).json({
+      message: "카테고리 삭제 완료",
+      count: deletedCount,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 
 module.exports = {
   createTutorJob,
   updateTutorJob,
+  getTutorJobById,
+  deleteTutorJob,
+  addTutorJobCategory,
+  deleteTutorJobCategory
 };
