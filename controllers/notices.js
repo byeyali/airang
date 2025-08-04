@@ -4,7 +4,7 @@ const { Notice } = require("../models");
 const createNotice = async (req, res) => {
   try {
     const { title, content, is_notice } = req.body;
-    const writer = req.member.id;  // 로그인한 사용자 ID
+    const writer = req.member.id; // 로그인한 사용자 ID
 
     const newNotice = await Notice.create({
       title,
@@ -44,7 +44,6 @@ const updateNotice = async (req, res) => {
 
     const updatedNotice = await Notice.findOne({ where: { id: id } });
     res.json(updatedNotice);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -53,7 +52,7 @@ const updateNotice = async (req, res) => {
 const getNoticeList = async (req, res) => {
   try {
     const notices = await Notice.findAll({
-      order: [['created_at', 'DESC']]
+      order: [["created_at", "DESC"]],
     });
     res.json(notices);
   } catch (err) {

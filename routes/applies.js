@@ -6,3 +6,5 @@ const applyController = require("../controllers/applies");
 router.post("/", authorization, jobController.createJobApply);
 router.put("/:id", authorization, jobController.updateJobApply);
 router.post("/:id", authorization, jobController.createContract);
+
+module.exports = router;

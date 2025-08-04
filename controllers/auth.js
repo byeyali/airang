@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { error } = require("console");
 require("dotenv").config();
@@ -35,7 +35,7 @@ const login = async (req, res) => {
 
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ error : err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 

@@ -1,4 +1,4 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const { error } = require("console");
 
 const { Member } = require("../models");
@@ -31,7 +31,9 @@ const updateMember = async (req, res) => {
     });
 
     if (!updated)
-      return res.status(404).json({ message: "회원을 찾을수 없거나 변경된 정보가 없습니다." });
+      return res
+        .status(404)
+        .json({ message: "회원을 찾을수 없거나 변경된 정보가 없습니다." });
     const updatedMember = await Member.findByPk(req.params.id);
     res.json(updatedMember);
   } catch (err) {

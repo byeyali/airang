@@ -82,7 +82,7 @@ const updateTutor = async (req, res) => {
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ message: "변경할 항목이 없습니다." });
     }
-    
+
     // TABLE UPDATE
     await Tutor.update(updateData, {
       where: { id: id },
@@ -96,7 +96,7 @@ const updateTutor = async (req, res) => {
   }
 };
 
-const deleteTutor = async(req, res) => {
+const deleteTutor = async (req, res) => {
   try {
     // 튜터 카테고리, 지역, 파일 우선 삭제
     const id = req.params.id;
@@ -122,11 +122,10 @@ const deleteTutor = async(req, res) => {
     } else {
       res.json({ message: "삭제완료" });
     }
-
   } catch (err) {
-    res.status(500).json({ error: err.message});
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 const addTutorCategory = async (req, res) => {
   try {
@@ -214,9 +213,7 @@ const addTutorRegion = async (req, res) => {
       }
     }
 
-    res
-      .status(200)
-      .json({ message: "튜터 지역 등록 완료", added: result });
+    res.status(200).json({ message: "튜터 지역 등록 완료", added: result });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

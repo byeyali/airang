@@ -10,12 +10,12 @@ const createTutorJob = async (req, res) => {
 
     // 요청자가 부모 회원이 아닐 경우 에러 RETURN
     const member = await Member.findOne({
-      where: { id: requesterId, member_type: 'mommy' },
+      where: { id: requesterId, member_type: "mommy" },
     });
 
     if (!member) {
       return res.status(404).json({
-         message: "요청자가 부모 회원이 아닙니다."
+        message: "요청자가 부모 회원이 아닙니다.",
       });
     }
 
@@ -39,7 +39,7 @@ const createTutorJob = async (req, res) => {
       description: tutorJob.description,
       etc: tutorJob.etc,
     });
-    
+
     res.status(201).json(newTutorJob);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -125,10 +125,10 @@ const updateTutorJob = async (req, res) => {
   }
 };
 
-const getTutorJobById = async(req, res) => {
-   try {
+const getTutorJobById = async (req, res) => {
+  try {
     const job = await TutorJob.findByPk(req.params.id);
-    if (!job)  {
+    if (!job) {
       return res.status(404).json({ message: "도와줘요 쌤 공고가 없습니다." });
     } else {
       return res.json(job);
@@ -136,9 +136,9 @@ const getTutorJobById = async(req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
 
-const deleteTutorJob = async(req, res) => {
+const deleteTutorJob = async (req, res) => {
   try {
     // 공고상태 확인
     const jobId = req.params.id;
@@ -147,7 +147,7 @@ const deleteTutorJob = async(req, res) => {
 
     if (job.status !== "registered") {
       return res.status(403).json({
-        message: "도와줘요~쌤 공고를 삭제할 수 없는 상태입니다."
+        message: "도와줘요~쌤 공고를 삭제할 수 없는 상태입니다.",
       });
     }
 
@@ -159,11 +159,10 @@ const deleteTutorJob = async(req, res) => {
     } else {
       res.json({ message: "공고가 삭제되었습니다." });
     }
-
   } catch (err) {
-    res.status(500).json({ error: err.message});
+    res.status(500).json({ error: err.message });
   }
-}
+};
 
 const addTutorJobCategory = async (req, res) => {
   try {
@@ -221,13 +220,11 @@ const deleteTutorJobCategory = async (req, res) => {
   }
 };
 
-
-
 module.exports = {
   createTutorJob,
   updateTutorJob,
   getTutorJobById,
   deleteTutorJob,
   addTutorJobCategory,
-  deleteTutorJobCategory
+  deleteTutorJobCategory,
 };
