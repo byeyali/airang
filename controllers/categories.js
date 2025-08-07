@@ -3,13 +3,14 @@ const { Category } = require("../models");
 
 const createCategory = async (req, res) => {
   try {
-    const { grp_cd, grp_nm, category_cd, category_nm } = req.body;
+    const { grp_cd, grp_nm, category_cd, category_nm, image_url } = req.body;
 
     const newCategory = await Category.create({
       grp_cd: grp_cd,
       grp_nm: grp_nm,
       category_cd: category_cd,
       category_nm: category_nm,
+      image_url: image_url,
     });
 
     res.status(201).json(newCategory);
@@ -76,7 +77,7 @@ const getCategoryList = async (req, res) => {
 
     const categories = await Category.findAll({
       where: whereClause,
-      order: [["category_cd", "ASC"]],
+      order: [["order_no", "ASC"]],
     });
 
     res.json(categories);

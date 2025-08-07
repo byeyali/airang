@@ -4,6 +4,14 @@ require("dotenv").config(); // .env 환경변수 로드
 const express = require("express");
 const app = express();
 const cors = require("cors");
+// cors 모든 출처 허용 옵션
+app.use(
+  cors({
+    origin: "http://localhost:3000", // 프론트엔드 주소를 명시적으로 설정
+    credentials: true,
+  })
+);
+
 const db = require("./models");
 const membersRoutes = require("./routes/members");
 const authRoutes = require("./routes/auth");
@@ -13,12 +21,11 @@ const tutorsRoutes = require("./routes/tutors");
 const jobsRoutes = require("./routes/jobs");
 const appliesRoutes = require("./routes/applies");
 const feedbacksRoutes = require("./routes/feedbacks");
-const interfacesRoutes = require("./routes/interfaces");
+const locationsRoutes = require("./routes/locations");
 
 const port = process.env.PORT || 3001;
 
 // 미들웨어 설정
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -33,6 +40,9 @@ app.use("/categories", categoriesRoutes);
 app.use("/notices", noticesRoutes);
 app.use("/tutors", tutorsRoutes);
 app.use("/jobs", jobsRoutes);
+app.use("/applies", appliesRoutes);
+app.use("/feedbacks", feedbacksRoutes);
+app.use("/locations", locationsRoutes);
 
 // DB 동기화 후 서버 시작
 console.log("📦 Sequelize: DB 동기화 시도 중...");
